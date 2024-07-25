@@ -10,6 +10,43 @@ app.use(Express.json())
 app.use(Cors())
 Mongoose.connect("mongodb+srv://raifashafi:raifashafi@cluster0.tznb7.mongodb.net/blogappDB?retryWrites=true&w=majority&appName=Cluster0")
 
+//usersignin imputs are email n pass
+app.post("/signIn",async(req,res)=>{
+let input=req.body
+let result=userModel.find({email:req.body.email}).then(
+    (items)=>{
+        if (items.length>0) {
+
+            const passwordValidator=Bcrypt.compareSync(req.body.password,items[0].password)
+            if (passwordValidator) {
+                //token creation
+                jwt.sign({email:req.body.email},"blogApp",{expiresIn:"1d"},
+                    (error,token)=>{
+                        if (error) {
+                            res.json({"status":"error","errorMessage":error})
+                        } else {
+                            res.json({"status":"success","token":token,"userId":items[0]._id})
+                        }
+
+                    })
+
+
+            } else {
+                res.json({"status":"incorrect password"})
+            }
+        } else {
+            res.json({"status":"invalid email id"})
+        }
+    }
+).catch()
+
+
+})
+
+
+
+
+//usersignup
 app.post("/signUp",async (req,res)=>
 {
     let input=req.body
